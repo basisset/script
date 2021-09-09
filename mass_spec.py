@@ -61,6 +61,8 @@ F11="NH2C2H3"
 F12="SSCH2"
 F13="SSCH2CHNH2COOH"
 F14="CH2COOH^{+}"
+F15="SC2H3NH2COOH"
+F16="SC2H3COOH"
 #a = get_mass(full)
 #b = get_mass(F2)
 print('full: ', full, get_mass(full))
@@ -78,3 +80,5 @@ print('F11: ', F11, get_mass(F11))
 print('F12: ', F12, get_mass(F12))
 print('F13: ', F13, get_mass(F13))
 print('F14: ', F14, get_mass(F14))
+print('F15: ', F15, get_mass(F15))
+print('F16: ', F16, get_mass(F16))
