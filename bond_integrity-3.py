@@ -12,7 +12,7 @@ class atom:
     def __init__(self):
         self.rvec=[] # position vector
         self.name="" # element name
-        self.specnum=0 # ???
+        self.specnum=0 # atom number maybe
         self.neigbors=[] #neigboring atoms
 
     def distance(self,center=np.asarray([0.0,0.0,0.0])):#distance from point in space
@@ -103,21 +103,18 @@ def dist_timestep(timestep,atom1,atom2):
     return np.linalg.norm(np.subtract(timestep[atom2].rvec,timestep[atom1].rvec))
 
 
-def bond_broken(dist,T=150):
+def bond_broken(dist,timesteps):
     B=[]	
-    for num in range(0,T+1): # + 1 so that we get the bond-integrity at 75 fs also
-		
+    for num in range(timesteps):
         try:
-            a = np.sqrt((np.sum(dist[num]-dist[0]))**2)-0.5
+            a = np.sqrt((np.sum(dist[num]-dist[0]))**2)-0.5 # ändra så att dist[0] är mean(startstruct)
         except:
             a = a # will this work for simulations that broke before T=150?
-        b = 10*a
-        c = np.exp(b)
-        d = 1+c
-        e = 1/d	
-        B.append(e)
-    
+        d = 1/ (1 + np.exp(10*a))
+        B.append(d) #for each timestep it appends the bond_integrity
     return np.asarray(B)
+
+
 #not used    
 def write_xyz_anim(filename,timesteps,skipstep=1):
     with open(filename,'w') as f:
@@ -143,7 +140,7 @@ startstruct_path = '/home/pamela/projects/methylcysteine/SIESTA/startstruct/'
 
 #natoms, md_verlet = parse_ANI(f'{startstruct_path}/{acid}.ANI') # change to mean of startstruct ANI
 
-natoms, md_verlet = parse_ANI(f'{startstruct_path}/SIM-1-startstruct.xyz') # read first struct of SIM-1
+natoms, md_verlet = parse_ANI(f'{startstruct_path}/DZP-coords-relaxed.xyz') # read first struct of SIM-1
 
 print(len(md_verlet))
 print(natoms)
@@ -161,46 +158,54 @@ except:
     os.mkdir(output_path)
 
 
-for main, atmlst in enumerate(neiglist):
-    for neig in atmlst:
-        #print("Analyzing "+ str(acid) + " atoms: "+ str(md_verlet[0][main].name) + str(main+1)+ " to "+ str(md_verlet[0][neig].name) + str(neig+1)) # uncomment when done
-        mean_integrity=[]
-        std_integrity=[]
-        bond_integrity=[]
-        for l in range(num_startstruct): 
-            Sim = f'{work_path}SIM-{l+1}'
-            os.chdir(Sim) # Sim is there directory of the specific run of the geometry "geostage" and ionization "ionstage". os.chdir takes us there
-            natoms, md_verlet = parse_ANI('./' + acid + '.ANI') # read the .ANI file in this trajectory. Might be called something else for you..
-              
-                # Trajectory parsed, needs to be done:
-                # 1)   Calculate bond integrity between all adjacent atoms
-                # 2)   Save to some data structure
-                # 3)   Average between trajectories (after ionstage loop)
-                # 4)   Make plots, check standard deviation
+for l in range(num_startstruct): 
+    Sim = f'{work_path}SIM-{l+1}'
+    os.chdir(Sim) # Sim is there directory of the specific run of the geometry "geostage" and ionization "ionstage". os.chdir takes us there
+    natoms, md_verlet = parse_ANI('./' + acid + '.ANI') # read the .ANI file in this trajectory. Might be called something else for you..      
+    
+    mean_integrity=[]
+    std_integrity=[]
+    bond_integrity=[]
+    for main, atmlst in enumerate(neiglist):
+        for neig in atmlst:
+            #  print("Analyzing "+ str(acid) + " atoms: "+ str(md_verlet[0][main].name) + str(main+1)+ " to "+ str(md_verlet[0][neig].name) + str(neig+1)) # uncomment when done
+                    # Trajectory parsed, needs to be done:
+                    # 1)   Calculate bond integrity between all adjacent atoms
+                    # 2)   Save to some data structure
+                    # 3)   Average between trajectories (after ionstage loop)
+                    # 4)   Make plots, check standard deviation
 
             dists=[dist_timestep(timestep,main,neig) for timestep in md_verlet] # check distances between the atoms for each timestep
             # len(md_verlet) = nr of timesteps
+            #print(str(main) + '+' + str(neig) + f' run {l+1} ---> distance in Å:' + str(dists[1]))
+            print(neiglist)
+            # DISTS IS OK BUT BONDS ARE CALCULATED TWICE
+
+            bond_integrity.append(np.asarray(bond_broken(dists,len(md_verlet)))) # calculate bond integrity, 
+            #if (l==0): 
+            #    print('atoms ' + str(main) + '+' + str(neig) + f'in run {l+1} ----> bond integrity: ' + str(bond_integrity))
             
-            bond_integrity.append(np.asarray(bond_broken(dists))) # calculate bond integrity, 
-            os.chdir("..") 
-                # now repeat for the next geometry
+            # bond integrity varannan 1 o 2 
+             
+            # now repeat for the next geometry
             
+            mean_integrity.append(np.asarray(bond_integrity).mean(0)) # calculate the mean over the 10 (or more/less depending on what you have) trajectories
+            #print(np.asarray(bond_integrity).shape)
+     
+            # mean(1) and std(1) means calculting along the row
+            std_integrity.append(np.asarray(bond_integrity).std(0)) # calculate the standard deviation over the 10 trajecories
 
-            mean_integrity.append(np.transpose(np.asarray(bond_integrity)).mean(1)) # calculate the mean over the 10 (or more/less depending on what you have) trajectories
-            std_integrity.append(np.transpose(np.asarray(bond_integrity)).std(1)) # calculate the standard deviation over the 10 trajecories
 
-# SAVE DATA
-
+    # SAVE DATA
             mean_data_name=f'{acid}_mean_bond_integrity_{md_verlet[0][main].name}{main+1}-{md_verlet[0][neig].name}{neig+1}_sim_{l+1}_hirshrun.txt'
-            np.savetxt(output_path + '/' + mean_data_name,np.transpose(mean_integrity))        
+            np.savetxt(output_path + '/' + mean_data_name,mean_integrity,delimiter='\n')        
             std_integrity=np.asarray(std_integrity)
             std_data_name=f'{acid}_stdev_bond_integrity_{md_verlet[0][main].name}{main+1}-{md_verlet[0][neig].name}{neig+1}_sim_{l+1}_hirshrun.txt'
 
-            np.savetxt(output_path + '/' + std_data_name,np.transpose(std_integrity))
+            np.savetxt(output_path + '/' + std_data_name,std_integrity,delimiter='\n')
             mean_integrity=[]
             std_integrity=[]
-
-#np.savetxt(f'time_serie_sim-{l+1}.txt',md_verlet[0][main].name)
+    #np.savetxt(f'time_serie_sim-{l+1}.txt',md_verlet[0][main].name)
 
 
 
