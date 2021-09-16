@@ -7,7 +7,7 @@ from numpy import linalg as LA
 from itertools import combinations
 
 assert sys.version_info >= (3,0) # checks to be atleast Python3
-dummy = 1
+dummy = 0
 class atom:
     def __init__(self):
         self.rvec=[] # position vector
@@ -75,7 +75,6 @@ def Is_Float(s):
 
 #Parsing .ANI file
 def parse_ANI(filename):
-    global dummy
     with open(filename, 'r') as f:
         contents = f.readlines()
     atoms=[]
@@ -83,11 +82,13 @@ def parse_ANI(filename):
     atoms_in_timestep=int(contents[0].split()[0])
     for i in range(len(contents)):
         if (Is_Int(contents[i])):
-            for j in range(i+2,i+2+int(atoms_in_timestep)):
+            for j in range(i+2,i+2+atoms_in_timestep):
                 atoms.append(atom())
                 atoms[-1].name=contents[j].split()[0] # name of atom in ANI file
                 atoms[-1].rvec=[float(contents[j].split()[k]) for k in range(1,4)] # coords of atom in ANI file
             time_serie.append(atoms)
+            #dummy += 1
+            #print(dummy)
             atoms=[]
     return atoms_in_timestep, time_serie
 
@@ -117,15 +118,15 @@ def bond_broken(dist,T=150):
         B.append(e)
     
     return np.asarray(B)
-    
+#not used    
 def write_xyz_anim(filename,timesteps,skipstep=1):
-    f = open(filename,'w')
-    for i, step in enumerate(timesteps):
-        if (np.mod(i,skipstep)<0.5):
-            f.write(str(len(step))+"\n")
-            f.write('Timestep: '+str(i*skipstep)+"\n")
-            for atm in step:
-                f.write(str(atm.name)+" "+str(atm.rvec[0])+" "+str(atm.rvec[1])+" "+str(atm.rvec[2])+"\n")
+    with open(filename,'w') as f:
+        for i, step in enumerate(timesteps):
+            if (np.mod(i,skipstep)<0.5):
+                f.write(str(len(step))+"\n")
+                f.write('Timestep: '+str(i*skipstep)+"\n")
+                for atm in step:
+                    f.write(str(atm.name)+" "+str(atm.rvec[0])+" "+str(atm.rvec[1])+" "+str(atm.rvec[2])+"\n")
 
 #if len(sys.argv)==1:
 #    print(str(sys.stderr)+ "Arg 1: amino acid, Arg 2: start-index of geometry file, Arg 3: end-index of geometry file, Arg 4: ionization stage "+str(sys.argv[0]))
@@ -134,79 +135,23 @@ def write_xyz_anim(filename,timesteps,skipstep=1):
 
 #Script START
 
-# Is this used?
-def write_new_ANIfile(stdout):
-    os.chdir(stdout)
-    f = open('output', 'r')
-    lines = f.readlines()
-    t = False
-    printing = False ###What is first_timestep.ANI and why do you need it?
-    fle = open('first_timestep.ANI', 'w')
 
-    fle.write('   ' + '33\n\n' )
-
-    for line in lines:
-
-        if '%block AtomicCoordinatesAndAtomicSpecies' in line and 'endblock' not in line:  
-            if printing == True:
-                t = True
-        if t == True:
-            if 'block' not in line:
-               
-                if Is_Float(line.split()[0]):
-                    if '1' == line.split()[3]:
-                        atomicID = 'O'
-                    if '2' == line.split()[3]:
-                        atomicID = 'H'
-                    if '3' == line.split()[3]:
-                        atomicID = 'N'
-                    if '4' == line.split()[3]:
-                        atomicID = 'C'
-                    if '5' == line.split()[3]:
-                        atomicID = 'S'
-                    coordinates = line.split()
-                    fle.write(atomicID + '       ' + coordinates[0] + '  ' +  coordinates[1] + '  ' + coordinates[2] + '\n')
-
-        if '%endblock ChemicalSpeciesLabel' in line:
-
-            printing = True
-        
-        if '%endblock AtomicCoordinatesAndAtomicSpecies' in line:
-            break
-        
-    fle = open('first_timestep.ANI','r')
-    f2 = open('list2.ANI','w')
-    for x in fle.readlines():
-        f2.write(x)
-    fle.close()
-    f2.close()
-
-    for element in os.listdir(stdout):
-        if element.endswith('.ANI') and 'alanine' in element:
-            print(element)
-            f=open(element)
-            break
-    #f=open('*.ANI')  
-    f1=open('list2.ANI','a')
-    for x in f.readlines():
-        f1.write(x)
-    f.close()
-    f1.close()
-
-#natoms, md_verlet = parse_ANI('/home/ibrahim/phd/PEPTIDE-PEK/peptides/peptides/trialanine/alpha_helix_ionization/1/DFT_ionization_simulation/startgeometry1_ionization0/list2.ANI') # read any .ANI file you have to get the structure
-
-
-natoms, md_verlet = parse_ANI('/home/pamela/projects/methylcysteine/SIESTA/startstruct/metcyst.ANI') # read any .ANI file you have to get the structure
-
-neiglist =  get_neighborlist(md_verlet[0],2.0)  # Checks which atoms that are in range of 2 angstrom from a specific atom for time zero to make a list. Change the value if you want a larger range. 
-
-
+acid = 'metcyst' # the name of the system you are studying
 num_startstruct = 2 #number of startstructures 
- 
-os.chdir('/home/pamela/projects/methylcysteine/SIESTA/charge/') # os.chdir changes where we "are" to where your siesta data is
+work_path = '/home/pamela/projects/methylcysteine/SIESTA/charge/'
+startstruct_path = '/home/pamela/projects/methylcysteine/SIESTA/startstruct/'
 
+#natoms, md_verlet = parse_ANI(f'{startstruct_path}/{acid}.ANI') # change to mean of startstruct ANI
+
+natoms, md_verlet = parse_ANI(f'{startstruct_path}/SIM-1-startstruct.xyz') # read first struct of SIM-1
+
+print(len(md_verlet))
+print(natoms)
+neiglist =  get_neighborlist(md_verlet[0],2)  # Checks which atoms that are in range of 2 angstrom from a specific atom for time zero to make a list. Enough for up to Sulphur atom. Increase in case of iodine for example. 
+
+
+os.chdir(work_path) # os.chdir changes where we "are" to where your siesta data is
 output_path = os.getcwd() + '/output' #Get current working path + new output folder
-
 try:
     # create an output folder where the data will be stored
     os.mkdir(output_path) 
@@ -215,19 +160,17 @@ except:
     shutil.rmtree(output_path)
     os.mkdir(output_path)
 
-acid = 'metcyst' # the name of the system you are studying
 
-for main, atmlst in enumerate(neiglist): 
+for main, atmlst in enumerate(neiglist):
     for neig in atmlst:
-        print("Analyzing "+ str(acid) + " atoms: "+ str(main+1)+ " to "+ str(neig+1))
+        #print("Analyzing "+ str(acid) + " atoms: "+ str(md_verlet[0][main].name) + str(main+1)+ " to "+ str(md_verlet[0][neig].name) + str(neig+1)) # uncomment when done
         mean_integrity=[]
         std_integrity=[]
         bond_integrity=[]
         for l in range(num_startstruct): 
-            
-            Sim = f'/home/pamela/projects/methylcysteine/SIESTA/charge/SIM-{l+1}'
+            Sim = f'{work_path}SIM-{l+1}'
             os.chdir(Sim) # Sim is there directory of the specific run of the geometry "geostage" and ionization "ionstage". os.chdir takes us there
-            natoms, md_verlet = parse_ANI('./metcyst.ANI') # read the .ANI file in this trajectory. Might be called something else for you..
+            natoms, md_verlet = parse_ANI('./' + acid + '.ANI') # read the .ANI file in this trajectory. Might be called something else for you..
               
                 # Trajectory parsed, needs to be done:
                 # 1)   Calculate bond integrity between all adjacent atoms
@@ -236,6 +179,8 @@ for main, atmlst in enumerate(neiglist):
                 # 4)   Make plots, check standard deviation
 
             dists=[dist_timestep(timestep,main,neig) for timestep in md_verlet] # check distances between the atoms for each timestep
+            # len(md_verlet) = nr of timesteps
+            
             bond_integrity.append(np.asarray(bond_broken(dists))) # calculate bond integrity, 
             os.chdir("..") 
                 # now repeat for the next geometry
@@ -243,8 +188,8 @@ for main, atmlst in enumerate(neiglist):
 
             mean_integrity.append(np.transpose(np.asarray(bond_integrity)).mean(1)) # calculate the mean over the 10 (or more/less depending on what you have) trajectories
             std_integrity.append(np.transpose(np.asarray(bond_integrity)).std(1)) # calculate the standard deviation over the 10 trajecories
-            
-            # SAVE DATA
+
+# SAVE DATA
 
             mean_data_name=f'{acid}_mean_bond_integrity_{md_verlet[0][main].name}{main+1}-{md_verlet[0][neig].name}{neig+1}_sim_{l+1}_hirshrun.txt'
             np.savetxt(output_path + '/' + mean_data_name,np.transpose(mean_integrity))        
@@ -254,4 +199,9 @@ for main, atmlst in enumerate(neiglist):
             np.savetxt(output_path + '/' + std_data_name,np.transpose(std_integrity))
             mean_integrity=[]
             std_integrity=[]
+
+#np.savetxt(f'time_serie_sim-{l+1}.txt',md_verlet[0][main].name)
+
+
+
 
