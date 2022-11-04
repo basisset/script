@@ -181,7 +181,7 @@ def parse_hirsh(filename):
 
 def mean_distance_dict(thermalization_list, index_to_atom, neighbors_list):
     """Returns a dictionary with keys in the form '(Atom_A_index, Atom_B_index)' with values in the form of lists, where the elements are mean values for the distance between atom A and B over time for each thermalization run in thermalization list (which contains information from parse_timestep function). index_to_atom is a dictionary made from make_atom_dictionary_from_timeserie() and neighbors_list from get_neighborlist()"""
-    mean_distance_lexi = {} # Dictionary with every atom pair_kj, in tuple-form, as keys and their values are mean distances over
+    mean_distance_dict = {} # Dictionary with every atom pair_kj, in tuple-form, as keys and their values are mean distances over
                         # all time positions for every thermalization run
 
     for run_index in range(len(thermalization_list)):
@@ -191,14 +191,18 @@ def mean_distance_dict(thermalization_list, index_to_atom, neighbors_list):
             for j in neighbors_list[k]:      # distance_list has dicts for every atom_k with neighbor atom_j as key and with 
                                         # distance_atom pair_kj(t) as values
                 distance_lexi[str(j)] = [dist_timestep(thermalization_list[run_index][t_i],k,j) for t_i in
-                                         range(len(thermalization_list[run_index]))]
+                                         range(len(thermalization_list[run_index]))]# Replaces previous list !!!!!
             distance_list.append(distance_lexi)    
             for j in neighbors_list[k]:
-                if mean_distance_lexi.get(str((index_to_atom[str(k)],index_to_atom[str(j)]))) != None:
-                    mean_distance_lexi[str((index_to_atom[str(k)],index_to_atom[str(j)]))].extend([mean(distance_list[k][str(j)])])#???????
+                KJ = str((index_to_atom[str(k)],index_to_atom[str(j)]))
+                 
+                if mean_distance_dict.get(KJ) is not None:
+                    mean_distance_dict[KJ].extend([mean(distance_list[k][str(j)])])#adds mean distance values
                 else:
-                    mean_distance_lexi[str((index_to_atom[str(k)],index_to_atom[str(j)]))] = [mean(distance_list[k][str(j)])]
-    return mean_distance_lexi, distance_list
+                    mean_distance_dict[KJ] = [mean(distance_list[k][str(j)])]
+        if run_index == 0:
+             print(distance_list[2])
+    return mean_distance_dict, distance_list
 
 
 def frags_from_dists(mean_distances_dict, atom_to_index, ion_dict, lamda, cutoff_BI):
