@@ -1,19 +1,20 @@
 import numpy as np
 import scipy as sp
+import sys
 from statistics import mean, stdev
 from analyze_trajectories import *
 import matplotlib.pyplot as plt
 from elementdata import *
-import seaborn as sns
 
 plt.rcParams["font.family"] = "times new roman"    # Changing font style and size for plots
 plt.rc('font', size=12) 
 
 
 #Reads data files for verlet runs
+#runs = ['output-16.out','output-17.out','output-18.out']
 runs=['output-13.out','output-20.out','output-1.out','output-2.out','output-3.out','output-4.out','output-5.out','output-6.out','output-7.out','output-8.out','output-9.out','output-10.out','output-11.out','output-12.out','output-14.out','output-15.out','output-16.out','output-17.out','output-18.out','output-19.out']
+#runs2=[['output-13.out'],['output-20.out'],['output-1.out'],['output-2.out'],['output-3.out'],['output-4.out'],['output-5.out'],['output-6.out'],['output-7.out'],['output-8.out'],['output-9.out'],['output-10.out'],['output-11.out'],['output-12.out'],['output-14.out'],['output-15.out'],['output-16.out'],['output-17.out'],['output-18.out'],['output-19.out']]
 thermalization_list=[]
-dummy=1
 for run in runs:
     time_pos, timeserie, orblegend, specieslegend, numberlegend = parse_timestep(run)
     thermalization_list.append(time_pos)# Creates list of time positions 
@@ -22,35 +23,36 @@ print(f'Length of thermalization_list is: {len(thermalization_list)}')
 
 neighbors_list = get_neighborlist(time_pos[0],1.8)# choose a specific time for which we can identify neighbours
 neighbors_list[0].extend([7])    # The iodine-carbon bond is longer, and is therefore manually added
-#Iodine at place 0 and closest carbon is nr 7
+#Iodine at place 0 and closest carbon is nr 7 in metINim
 
 print(f'Neighbor list[atom][neighbor]: {neighbors_list}')                               
 print(f'Number of neighbor lists is {len(neighbors_list)}')
 
 
 mean_distances_dict, distance_list = mean_distance_dict(thermalization_list, index_to_atom, neighbors_list)
-                                # Function is found in module analyze_trajectories
 
+
+#Change to save file for mean and std from user input
 for k in range(len(neighbors_list)):
     for j in neighbors_list[k]:
-        print(f"Mean distance between {index_to_atom[str(k)]} and {index_to_atom[str(j)]}: \t"
+            print(f"Mean distance between {index_to_atom[str(k)]} and {index_to_atom[str(j)]}: \t"
               f"{mean(mean_distances_dict[str((index_to_atom[str(k)],index_to_atom[str(j)]))])} Å")
-        print(f'Standard deviation: \t\t\t{stdev(mean_distances_dict[str((index_to_atom[str(k)],index_to_atom[str(j)]))])} Å',
+            print(f'Standard deviation: \t\t\t{stdev(mean_distances_dict[str((index_to_atom[str(k)],index_to_atom[str(j)]))])} Å',
               end='\n\n') #Is needed for bond integrity!!!
 
 
 
 # Analyzing bond distance
-atom = 4# Only one neigbor-list is chosen
-time = [x for x in range(len(thermalization_list[0]))]
-for granne in neighbors_list[atom]:# For each atom in the list
+#atom = 4# Only one neigbor-list is chosen
+#time = [x for x in range(len(thermalization_list[0]))]
+#for granne in neighbors_list[atom]:# For each atom in the list
     #fig, ax = plt.subplots()
-    print(f'####Bonds to atom {index_to_atom[str(granne)]} analyzed')
+#    print(f'####Bonds to atom {index_to_atom[str(granne)]} analyzed')
   #  print(f'Lengths of files: {len(time)} and {len(distance_list[i][str(granne)])}')#in case output list is shorter than time (crashed calculation)
     #ax.plot(time, distance_list[atom][str(granne)])
     #ax.set(xlabel='Time [fs]', ylabel='Distance [AA]',title=f'Distance between atom pair {index_to_atom[str(atom)]} {index_to_atom[str(granne)]}')
     #fig.savefig(f'dist{index_to_atom[str(i)]} {index_to_atom[str(j)]}')
-    plt.show()
+#    plt.show()
 
 #Analyzing bond integrity for one pair
 atom_pair = "('N3', 'C2')"
@@ -97,34 +99,21 @@ for indexpair in index:
         if all_keys[indexpair[1]] in mean_distances_dict:
             del mean_distances_dict[all_keys[indexpair[1]]]
 
-for k in index_to_atom.values():
-    neighlist= [n for n in mean_distances_dict.keys() if str(k) in n]
-    mainatom=str(k[0])
-    if mainatom=="H":
-        #print(k)
-        for n in neighlist:
-            #print(n)
-            if n.count("H")>1 and n in mean_distances_dict.keys():
-                del mean_distances_dict[n]
-##print(list(mean_distances_dict.keys()))
+#Removed incorrect bonds (H is only bound to one)
+mean_distances_dict = rm_incorrect_bonds(index_to_atom,mean_distances_dict)
 
-
-#runs2=[['output-1.out'],['output-2.out'],['output-3.out'],['output-4.out']]
-runs2=[['output-13.out'],['output-20.out'],['output-1.out'],['output-2.out'],['output-3.out'],['output-4.out'],['output-5.out'],['output-6.out'],['output-7.out'],['output-8.out'],['output-9.out'],['output-10.out'],['output-11.out'],['output-12.out'],['output-14.out'],['output-15.out'],['output-16.out'],['output-17.out'],['output-18.out'],['output-19.out']]
-ionization_list = []
-for geo in runs2:
-    for run in geo:
-        time_pos, timeserie, orblegend, specieslegend, numberlegend = parse_timestep(run)
-        ionization_list.append(time_pos)
-
-
-#geo = 1
-#ion = 1
-#write_xyz_anim('test-run1.xyz',ionization_list[10*geo + ion-1])
+#runs2=[['output-13.out'],['output-20.out'],['output-1.out'],['output-2.out'],['output-3.out'],['output-4.out'],['output-5.out'],['output-6.out'],['output-7.out'],['output-8.out'],['output-9.out'],['output-10.out'],['output-11.out'],['output-12.out'],['output-14.out'],['output-15.out'],['output-16.out'],['output-17.out'],['output-18.out'],['output-19.out']]
+#ionization_list = []
+#for geo in runs2:
+#    for run in geo:
+#        time_pos, timeserie, orblegend, specieslegend, numberlegend = parse_timestep(run)
+#        ionization_list.append(time_pos)
 
 
 
-n_geo = len(runs2)   # Number of different starting geometries # går programmet in o kollar alla körningar?
+
+
+n_geo = len(runs)   # Number of different starting geometries # går programmet in o kollar alla körningar?
 n_ion = 1    # Number of different ionization numbers (# electrons removed)
 ion_dict = {}
 for key in list(mean_distances_dict.keys()):
@@ -133,7 +122,7 @@ for key in list(mean_distances_dict.keys()):
     for geo in range(n_geo):
         for ion in range(n_ion):
             current_run=(n_ion*geo)+ion
-            ion_dist_list = [dist_timestep(ionization_list[current_run][t],index_i,index_j) for t in range(len(ionization_list[current_run]))]
+            ion_dist_list = [dist_timestep(thermalization_list[geo][t],index_i,index_j) for t in range(len(thermalization_list[geo]))]
 
             if key not in ion_dict:
                 ion_dict[key]=[None]*n_geo
@@ -144,12 +133,11 @@ for key in list(mean_distances_dict.keys()):
 
 #Bond integrity over time
 atom_pairs = ["('N3', 'C2')", "('I1', 'C3')"]#Key C2,N3 doesnt work
-n_geo = 18 #number of geometries
 ion_run = 1 #number of ionizations
 ion = ion_run - 1
 i = None
 j = None
-time = [t for t in range(len(ionization_list[0]))]
+time = [t for t in range(len(thermalization_list[0]))]
 bond_intr_mean = np.zeros(len(time))
 for atom_pair in atom_pairs:
     fig, ax = plt.subplots()
@@ -162,7 +150,7 @@ for atom_pair in atom_pairs:
         ax.set(xlabel='Time [fs]',ylabel='Bond integrity',title=f'Bond integrity for atom pair {i} {j} for geometry nr {min(range(geo+1))+1}-{max(range(geo+1))+1}') 
     bond_intr_mean = bond_intr_mean/n_geo 
     ax.fill_between(time,bond_intr_mean,1,zorder=1, color='orange')
-    plt.savefig(f'{i}_{j}-bondIntr.png')
+#    plt.savefig(f'{i}_{j}-bondIntr.png')
     plt.show()
     bond_intr_mean = np.zeros(len(time))
 

@@ -74,6 +74,18 @@ def get_neighborlist(timestep,rmax):
         neighborlist.append(find_atoms_within_radius(timestep,atm.rvec,rmax,rmin))
     return neighborlist
 
+def rm_incorrect_bonds(index_to_atom,mean_distances_dict):
+    for k in index_to_atom.values():
+        neighlist= [n for n in mean_distances_dict.keys() if str(k) in n]
+        mainatom=str(k[0])
+        if mainatom=="H":
+            #print(k)
+            for n in neighlist:
+                #print(n)
+                if n.count("H")>1 and n in mean_distances_dict.keys():
+                    del mean_distances_dict[n]
+    return mean_distances_dict
+    ##print(list(mean_distances_dict.keys()))
 
 def find_atoms_within_cartesian(cluster,xlim,ylim,zlim):
     indices=[]
@@ -155,7 +167,10 @@ def bond_broken(dist,mean,T=150):
 def bond_broken_2(dist, T, mean, sigma, lamda):
     B=[]
     for num in range(0,T):
-        e = (1 + np.exp(lamda*(dist[num]-mean-sigma-0.5)))**(-1)
+        if ((dist[num]-mean-sigma) >= 1.2):# to avoid overflow for large e (if lambda ==10)
+            e = 0
+        else:
+            e = (1 + np.exp(lamda*(dist[num]-mean-sigma-0.5)))**(-1)
         B.append(e)
     
     return np.asarray(B)
