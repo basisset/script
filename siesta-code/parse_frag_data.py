@@ -19,26 +19,28 @@ for run in runs:
     time_pos, timeserie, orblegend, specieslegend, numberlegend = parse_timestep(run)
     thermalization_list.append(time_pos)# Creates list of time positions 
 index_to_atom, atom_to_index=make_atom_dictionary_from_timeserie(time_pos)
-print(f'Length of thermalization_list is: {len(thermalization_list)}')
+print(f'{len(thermalization_list)} input files found! ')
 
 neighbors_list = get_neighborlist(time_pos[0],1.8)# choose a specific time for which we can identify neighbours
 neighbors_list[0].extend([7])    # The iodine-carbon bond is longer, and is therefore manually added
 #Iodine at place 0 and closest carbon is nr 7 in metINim
 
-print(f'Neighbor list[atom][neighbor]: {neighbors_list}')                               
-print(f'Number of neighbor lists is {len(neighbors_list)}')
+print(f'> Neighbor list[atom][neighbor]: {neighbors_list}')                               
+print(f'> Number of neighbor lists is {len(neighbors_list)}')
 
-
+print('> Calculating mean and standard deviation for atomic distances...')
 mean_distances_dict, distance_list = mean_distance_dict(thermalization_list, index_to_atom, neighbors_list)
 
 
 #Change to save file for mean and std from user input
-for k in range(len(neighbors_list)):
-    for j in neighbors_list[k]:
+inp = input('> Do you want to print mean and standard deviation? (Y/n) \n')
+print(inp)
+if (inp == 'Y' or 'y'):
+    for k in range(len(neighbors_list)):
+        for j in neighbors_list[k]:
             print(f"Mean distance between {index_to_atom[str(k)]} and {index_to_atom[str(j)]}: \t"
-              f"{mean(mean_distances_dict[str((index_to_atom[str(k)],index_to_atom[str(j)]))])} Å")
-            print(f'Standard deviation: \t\t\t{stdev(mean_distances_dict[str((index_to_atom[str(k)],index_to_atom[str(j)]))])} Å',
-              end='\n\n') #Is needed for bond integrity!!!
+              f"{mean(mean_distances_dict[str((index_to_atom[str(k)],index_to_atom[str(j)]))])}")
+            print(f'Standard deviation: \t\t\t{stdev(mean_distances_dict[str((index_to_atom[str(k)],index_to_atom[str(j)]))])}',end='\n\n')
 
 
 
@@ -88,7 +90,7 @@ bond_dists = distance_list[int(i)][str(j)]
 
 all_keys = list(mean_distances_dict.keys())
 sorted_keys = [sorted(e) for e in list(mean_distances_dict.keys())]
-print(f'Length fo all_keys is {len(all_keys)}')
+print(f'> Length of neighbor keys is {len(all_keys)}')
 
 index=[]
 for i, key in enumerate(sorted_keys):
@@ -196,7 +198,7 @@ for atom_pair in atom_pairs:
 
 total_fragments = frags_from_dists(mean_distances_dict, atom_to_index, ion_dict, lamda=10, cutoff_BI=0.5)
 print(total_fragments)
-print('Done')
+print('> Done')
 
 #Write code which also shows mass of each fragment
 

@@ -244,7 +244,7 @@ def frags_from_dists(mean_distances_dict, atom_to_index, ion_dict, lamda, cutoff
     total_fragments=[None]*n_geo
     total_fragments=[[None]*n_ion for x in total_fragments]
 
-    print(f'##### Number of starting geometries are {n_geo}#####')
+    #print(f'##### Number of starting geometries are {n_geo}#####')
     for geo in range(n_geo):
         for ion in range(n_ion):
             polyatomic=[]
@@ -415,8 +415,8 @@ def parse_timestep(filename, outfile=None):
     with open(filename, 'r') as f:
         contents = f.readlines()
         #här print("filename: "+str(filename))
-        print(f"#####reading file {filename}#####")
-        print("length of file: "+str(len(contents)))
+        print(f"##### Reading file {filename} #####")
+        print("Length of file: "+str(len(contents)))
     numatm=0
     basissize='SZP'
     time_pos=[]
