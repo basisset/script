@@ -1,0 +1,8 @@
+output-*.out
+*.png
+*.pdf
+.DS_STORE
+.ipynb_checkpoints/
+*.tar
+*.gz
+__pycache__/
