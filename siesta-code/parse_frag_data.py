@@ -11,20 +11,20 @@ plt.rc('font', size=12)
 
 
 #Reads data files for verlet runs
-runs=['output-1.out','output-2.out','output-3.out','output-4.out','output-10.out']
+runs=['output-13.out','output-20.out','output-1.out','output-2.out','output-3.out','output-4.out','output-5.out','output-6.out','output-7.out','output-8.out','output-9.out','output-10.out','output-11.out','output-12.out','output-14.out','output-15.out','output-16.out','output-17.out','output-18.out','output-19.out']
 thermalization_list=[]
 dummy=1
 for run in runs:
     time_pos, timeserie, orblegend, specieslegend, numberlegend = parse_timestep(run)
     thermalization_list.append(time_pos)# Creates list of time positions 
 index_to_atom, atom_to_index=make_atom_dictionary_from_timeserie(time_pos)
-
+print(f'Length of thermalization_list is: {len(thermalization_list)}')
 
 neighbors_list = get_neighborlist(time_pos[0],1.8)# choose a specific time for which we can identify neighbours
 neighbors_list[0].extend([7])    # The iodine-carbon bond is longer, and is therefore manually added
 #Iodine at place 0 and closest carbon is nr 7
 
-print(f'Neighbor list[k][j]: {neighbors_list}')                               
+print(f'Neighbor list[atom][neighbor]: {neighbors_list}')                               
 print(f'Number of neighbor lists is {len(neighbors_list)}')
 
 
@@ -41,20 +41,19 @@ for k in range(len(neighbors_list)):
 
 
 # Analyzing bond distance
-i = 1# Only one neigbor-list is chosen
-for j in neighbors_list[i]:# For each atom in the list
-    time = [x for x in range(len(thermalization_list[i]))]
-    fig, ax = plt.subplots()
-    ax.plot(time, distance_list[i][str(j)]) ## Fails when one inputfile is shorter
-    #ax.set_ylim([1.5,2.5])
-    ax.set(xlabel='Time [fs]', ylabel='Distance [Å]',
-           title=f'Distance between atom pair {index_to_atom[str(i)]} {index_to_atom[str(j)]}')
-    #ax.set(xlabel='Time [fs]', ylabel='Distance [Å]')
+atom = 4# Only one neigbor-list is chosen
+time = [x for x in range(len(thermalization_list[0]))]
+for granne in neighbors_list[atom]:# For each atom in the list
+    #fig, ax = plt.subplots()
+    print(f'####Bonds to atom {index_to_atom[str(granne)]} analyzed')
+  #  print(f'Lengths of files: {len(time)} and {len(distance_list[i][str(granne)])}')#in case output list is shorter than time (crashed calculation)
+    #ax.plot(time, distance_list[atom][str(granne)])
+    #ax.set(xlabel='Time [fs]', ylabel='Distance [AA]',title=f'Distance between atom pair {index_to_atom[str(atom)]} {index_to_atom[str(granne)]}')
     #fig.savefig(f'dist{index_to_atom[str(i)]} {index_to_atom[str(j)]}')
-    #plt.show()
+    plt.show()
 
-
-atom_pair = "('O1', 'N3')"
+#Analyzing bond integrity for one pair
+atom_pair = "('N3', 'C2')"
 atom_i = atom_pair.split("'")[1]
 i = atom_to_index[atom_i]
 atom_j = atom_pair.split("'")[3]
@@ -62,25 +61,25 @@ j = atom_to_index[atom_j]
 lamda = 10
 
 bond_dists = distance_list[int(i)][str(j)]
-fig, ax = plt.subplots()
-ax.plot(bond_dists, bond_broken_2(bond_dists,len(bond_dists), mean(mean_distances_dict[atom_pair]),
-                                  stdev(mean_distances_dict[atom_pair]), lamda), c='orange')
-ax.set(xlabel='Bond distance [Å]', ylabel='Bond integrity', title=f'Bond integrity for atom pair {atom_i} {atom_j}')
-##plt.show()
+#fig, ax = plt.subplots()
+#ax.plot(bond_dists, bond_broken_2(bond_dists,len(bond_dists), mean(mean_distances_dict[atom_pair]),
+#                                  stdev(mean_distances_dict[atom_pair]), lamda), c='orange')
+#ax.set(xlabel='Bond distance [AAngstroem]', ylabel='Bond integrity', title=f'Bond integrity for atom pair {atom_i} {atom_j}')
+#plt.show()
 
+#Comparing bond intergity for atom pair with general form of bond integrity using bond_broken_2
 #d = np.arange(min(bond_dists),3,0.01)
 #fig, ax = plt.subplots()
+#I = int(i)
+#J = str(j)
 #for lamda in [1,10,100]:
-#    ax.plot(d,bond_broken_2(d,len(d),mean(mean_distances_dict[atom_pair]),stdev(mean_distances_dict[atom_pair]), lamda),
-#                                                                                     label=f'BI function l={lamda}')
-#    ax.plot(distance_list[int(i)][str(j)], bond_broken_2(distance_list[int(i)][str(j)],len(distance_list[int(i)][str(j)]),
-#                                            mean(mean_distances_dict[atom_pair]), stdev(mean_distances_dict[atom_pair]), lamda),
-#                                                                                         label=f'Thermalization run l={lamda}')
-
+#    ax.plot(d,bond_broken_2(d,len(d),mean(mean_distances_dict[atom_pair]),stdev(mean_distances_dict[atom_pair]), lamda),label=f'BI function l={lamda}')
+#    ax.plot(distance_list[I][J], bond_broken_2(distance_list[I][J],len(distance_list[I][J]), mean(mean_distances_dict[atom_pair]), stdev(mean_distances_dict[atom_pair]), lamda),label=f'Thermalization run l={lamda}')
+#
 #ax.set_ylim([0,1.1])
 #ax.legend()
 ##ax.set(xlabel='Bond distance [Å]', ylabel='Bond integrity', title=f'Bond integrity for {atom_i} {atom_j} with lambda={lamda}')
-#ax.set(xlabel='Bond distance [Å]', ylabel='Bond integrity')
+#ax.set(xlabel='Bond distance [AA]', ylabel='Bond integrity')
 ##fig.savefig(f'lamda{lamda} {atom_i} {atom_j}')
 #plt.show()
 
@@ -110,8 +109,9 @@ for k in index_to_atom.values():
 ##print(list(mean_distances_dict.keys()))
 
 
-runs2=[['output-1.out'],['output-2.out'],['output-3.out'],['output-4.out'],['output-10.out']]
-ionization_list=[]
+#runs2=[['output-1.out'],['output-2.out'],['output-3.out'],['output-4.out']]
+runs2=[['output-13.out'],['output-20.out'],['output-1.out'],['output-2.out'],['output-3.out'],['output-4.out'],['output-5.out'],['output-6.out'],['output-7.out'],['output-8.out'],['output-9.out'],['output-10.out'],['output-11.out'],['output-12.out'],['output-14.out'],['output-15.out'],['output-16.out'],['output-17.out'],['output-18.out'],['output-19.out']]
+ionization_list = []
 for geo in runs2:
     for run in geo:
         time_pos, timeserie, orblegend, specieslegend, numberlegend = parse_timestep(run)
@@ -133,8 +133,7 @@ for key in list(mean_distances_dict.keys()):
     for geo in range(n_geo):
         for ion in range(n_ion):
             current_run=(n_ion*geo)+ion
-            ion_dist_list = [dist_timestep(ionization_list[current_run][t],index_i,index_j)
-                             for t in range(len(ionization_list[current_run]))]
+            ion_dist_list = [dist_timestep(ionization_list[current_run][t],index_i,index_j) for t in range(len(ionization_list[current_run]))]
 
             if key not in ion_dict:
                 ion_dict[key]=[None]*n_geo
@@ -143,22 +142,32 @@ for key in list(mean_distances_dict.keys()):
                 pass
             ion_dict[key][geo][ion]=ion_dist_list
 
+#Bond integrity over time
+atom_pairs = ["('N3', 'C2')", "('I1', 'C3')"]#Key C2,N3 doesnt work
+n_geo = 18 #number of geometries
+ion_run = 1 #number of ionizations
+ion = ion_run - 1
+i = None
+j = None
+time = [t for t in range(len(ionization_list[0]))]
+bond_intr_mean = np.zeros(len(time))
+for atom_pair in atom_pairs:
+    fig, ax = plt.subplots()
+    for geo in range(n_geo):
+        bond_intr = bond_broken_2(ion_dict[atom_pair][geo][ion],len(ion_dict[atom_pair][geo][ion]),mean(mean_distances_dict[atom_pair]), stdev(mean_distances_dict[atom_pair]),10)
+        bond_intr_mean += bond_intr
+        ax.plot(time, bond_intr,zorder=1000, color='gray')
+        i = atom_pair.split("'")[1]
+        j = atom_pair.split("'")[3]
+        ax.set(xlabel='Time [fs]',ylabel='Bond integrity',title=f'Bond integrity for atom pair {i} {j} for geometry nr {min(range(geo+1))+1}-{max(range(geo+1))+1}') 
+    bond_intr_mean = bond_intr_mean/n_geo 
+    ax.fill_between(time,bond_intr_mean,1,zorder=1, color='orange')
+    plt.savefig(f'{i}_{j}-bondIntr.png')
+    plt.show()
+    bond_intr_mean = np.zeros(len(time))
 
-#atom_pairs = ["('I1', 'C8')", "('O1', 'H12')", "('C2', 'C3')"]
-#g = 2
-#ion_run = 8
-#ion = ion_run - 1
-#time = [t for t in range(len(ionization_list[0]))]
-#for atom_pair in atom_pairs:
-#    fig, ax = plt.subplots()
-#    ax.plot(time, bond_broken_2(ion_dict[atom_pair][g][ion],len(ion_dict[atom_pair][g][ion]),
-#                                mean(mean_distances_dict[atom_pair]), stdev(mean_distances_dict[atom_pair]),10))
-#    i = atom_pair.split("'")[1]
-#    j = atom_pair.split("'")[3]
-#    ax.set(xlabel='Time [fs]',ylabel='Bond integrity',title=f'Bond integrity for atom pair {i} {j} with g={g} and i={ion_run}') 
-#    plt.show()
 
-
+### To produce heat maps ###
 #atom_pair = "('I1', 'C8')"
 #i = atom_pair.split("'")[1]
 #j = atom_pair.split("'")[3]
@@ -201,7 +210,7 @@ total_fragments = frags_from_dists(mean_distances_dict, atom_to_index, ion_dict,
 print(total_fragments)
 print('Done')
 
-
+#Write code which also shows mass of each fragment
 
 
 

@@ -111,9 +111,8 @@ def Is_Int(s):
 
 #Parsing .ANI file
 def parse_ANI(filename):
-    f = open(filename, 'r')
-    contents = f.readlines()
-    f.close()
+    with open(filename, 'r') as f:
+        contents = f.readlines()
     atoms=[]
     time_serie=[]
     for i in range(len(contents)):
@@ -162,9 +161,8 @@ def bond_broken_2(dist, T, mean, sigma, lamda):
     return np.asarray(B)
 
 def parse_hirsh(filename):
-    f = open(filename, 'r')
-    contents = f.readlines()
-    f.close()
+    with open(filename, 'r') as f:
+        contents = f.readlines()
     timesteps=[]
     charges=[]
     numatm=0
@@ -200,8 +198,8 @@ def mean_distance_dict(thermalization_list, index_to_atom, neighbors_list):
                     mean_distance_dict[KJ].extend([mean(distance_list[k][str(j)])])#adds mean distance values
                 else:
                     mean_distance_dict[KJ] = [mean(distance_list[k][str(j)])]
-        if run_index == 0:
-             print(distance_list[2])
+        #if run_index == 0:
+        #     #print(distance_list[2])
     return mean_distance_dict, distance_list
 
 
@@ -231,7 +229,7 @@ def frags_from_dists(mean_distances_dict, atom_to_index, ion_dict, lamda, cutoff
     total_fragments=[None]*n_geo
     total_fragments=[[None]*n_ion for x in total_fragments]
 
-    print(f'####################{n_geo}####################')
+    print(f'##### Number of starting geometries are {n_geo}#####')
     for geo in range(n_geo):
         for ion in range(n_ion):
             polyatomic=[]
@@ -302,13 +300,13 @@ def frags_from_dists(mean_distances_dict, atom_to_index, ion_dict, lamda, cutoff
 
 
 def write_xyz_anim(filename,timesteps,skipstep=1):
-    f = open(filename,'w')
-    for i, step in enumerate(timesteps):
-        if (np.mod(i,skipstep)<0.5):
-            f.write(str(len(step))+"\n")
-            f.write('Timestep: '+str(i*skipstep)+"\n")
-            for atm in step:
-                f.write(str(atm.name)+" "+str(atm.rvec[0])+" "+str(atm.rvec[1])+" "+str(atm.rvec[2])+"\n")
+    with open(filename,'w') as f:
+        for i, step in enumerate(timesteps):
+            if (np.mod(i,skipstep)<0.5):
+                f.write(str(len(step))+"\n")
+                f.write('Timestep: '+str(i*skipstep)+"\n")
+                for atm in step:
+                    f.write(str(atm.name)+" "+str(atm.rvec[0])+" "+str(atm.rvec[1])+" "+str(atm.rvec[2])+"\n")
 
 
 def parse_hirsh_from_file(ion,lastion,acid):
@@ -335,9 +333,8 @@ def parse_hirsh_from_file(ion,lastion,acid):
     return all_mean_hirsh, all_std_hirsh
 
 def parse_eigenvalues(filename):
-    f = open(filename, 'r')
-    contents = f.readlines()
-    f.close()
+    with open(filename, 'r') as f:
+        contents = f.readlines()
     timeserie_eig=[]
     timeserie_occ=[]
 
@@ -382,7 +379,7 @@ def make_atom_dictionary_from_timeserie(timeserie):
     name_list=[atm.name for atm in timeserie[0]]
     #print(name_list), print(type(name_list[0]))
     for i, atm in enumerate(timeserie[0]):
-        print(str(i), atm.name)
+        #print(str(i), atm.name)
         new_atom_number=name_list[0:i].count(atm.name)+1
         key=str(i)
         value=atm.name+str(new_atom_number)
@@ -393,9 +390,8 @@ def make_atom_dictionary_from_timeserie(timeserie):
 
 def parse_xyz(filename):
     xyz=[]
-    f = open(filename, 'r')
-    contents = f.readlines()
-    f.close()
+    with open(filename, 'r') as f:
+        contents = f.readlines()
     for line in contents:
         xyz.append(np.asarray(line.split()[1:4], dtype=float))
     return np.transpose(np.asarray(xyz))
@@ -404,6 +400,7 @@ def parse_timestep(filename, outfile=None):
     with open(filename, 'r') as f:
         contents = f.readlines()
         #här print("filename: "+str(filename))
+        print(f"#####reading file {filename}#####")
         print("length of file: "+str(len(contents)))
     numatm=0
     basissize='SZP'
@@ -440,7 +437,7 @@ def parse_timestep(filename, outfile=None):
         if ("AtomicSpecies" in contents[i]):
             #print "Found AtomicCoord..."
             for j in range(i+1,len(contents)):
-                print(str(j-i)+"  "+str(contents[j].split()))
+                #print(str(j-i)+"  "+str(contents[j].split()))
                 numberlegend[str(j-i)]=str(contents[j].split()[3])
                 if ("AtomicCoordinatesAndAtomicSpecies" in contents[j+1]):
                 #    print "Found!"
