@@ -1,6 +1,9 @@
+#!/usr/bin/env python3
+
 import numpy as np
 import scipy as sp
 import sys
+import pickle
 from statistics import mean, stdev
 from analyze_trajectories import *
 import matplotlib.pyplot as plt
@@ -22,7 +25,7 @@ index_to_atom, atom_to_index=make_atom_dictionary_from_timeserie(time_pos)
 print(f'{len(thermalization_list)} input files found! ')
 
 neighbors_list = get_neighborlist(time_pos[0],1.8)# choose a specific time for which we can identify neighbours
-neighbors_list[0].extend([7])    # The iodine-carbon bond is longer, and is therefore manually added
+#neighbors_list[0].extend([7])    # The iodine-carbon bond is longer, and is therefore manually added
 #Iodine at place 0 and closest carbon is nr 7 in metINim
 
 print(f'> Neighbor list[atom][neighbor]: {neighbors_list}')                               
@@ -35,7 +38,7 @@ mean_distances_dict, distance_list = mean_distance_dict(thermalization_list, ind
 #Change to save file for mean and std from user input
 inp = input('> Do you want to print mean and standard deviation? (Y/n) \n')
 print(inp)
-if (inp == 'Y' or 'y'):
+if inp in ['Y', 'y','']:
     for k in range(len(neighbors_list)):
         for j in neighbors_list[k]:
             print(f"Mean distance between {index_to_atom[str(k)]} and {index_to_atom[str(j)]}: \t"
@@ -134,7 +137,8 @@ for key in list(mean_distances_dict.keys()):
             ion_dict[key][geo][ion]=ion_dist_list
 
 #Bond integrity over time
-atom_pairs = ["('N3', 'C2')", "('I1', 'C3')"]#Key C2,N3 doesnt work
+#atom_pairs = ["('N3', 'C2')", "('I1', 'C3')"]#Key C2,N3 doesnt work
+atom_pairs = ["('N3', 'C2')"]#Key C2,N3 doesnt work
 ion_run = 1 #number of ionizations
 ion = ion_run - 1
 i = None
@@ -198,6 +202,8 @@ for atom_pair in atom_pairs:
 
 total_fragments = frags_from_dists(mean_distances_dict, atom_to_index, ion_dict, lamda=10, cutoff_BI=0.5)
 print(total_fragments)
+with open('fragments.pickle','wb') as f:
+    pickle.dump(total_fragments, f)
 print('> Done')
 
 #Write code which also shows mass of each fragment
