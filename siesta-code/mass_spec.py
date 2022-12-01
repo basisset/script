@@ -1,6 +1,6 @@
 mass={}
-mass['Br']=79.9
-mass['I']=126.9
+mass['Br']=80.0
+mass['I']=127.0
 mass['S']=32.0 #065
 mass['O']=16.0 #994
 mass['N']=14.0 #007
@@ -9,7 +9,8 @@ mass['H']=1.00
 
 def get_mass(frag):
     total_mass=0.0
-    for i, c in enumerate(frag):
+    for i, c in enumerate(frag):#takes only one letter at a time, fails for Br
+        print(f'mass_spec i,c: {i},{c}')
         if ('^' not in c):
             if c.isalnum():
                 if c.isalpha():
