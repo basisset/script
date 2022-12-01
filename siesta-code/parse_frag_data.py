@@ -15,7 +15,8 @@ plt.rc('font', size=12)
 
 #Reads data files for verlet runs
 #runs = ['output-16.out','output-17.out','output-18.out']
-runs=['output-13.out','output-20.out','output-1.out','output-2.out','output-3.out','output-4.out','output-5.out','output-6.out','output-7.out','output-8.out','output-9.out','output-10.out','output-11.out','output-12.out','output-14.out','output-15.out','output-16.out','output-17.out','output-18.out','output-19.out']
+runs=['output-1.out','output-3.out','output-4.out','output-5.out','output-6.out','output-7.out','output-8.out','output-9.out','output-10.out']
+#runs=['output-13.out','output-20.out','output-1.out','output-2.out','output-3.out','output-4.out','output-5.out','output-6.out','output-7.out','output-8.out','output-9.out','output-10.out','output-11.out','output-12.out','output-14.out','output-15.out','output-16.out','output-17.out','output-18.out','output-19.out']
 #runs2=[['output-13.out'],['output-20.out'],['output-1.out'],['output-2.out'],['output-3.out'],['output-4.out'],['output-5.out'],['output-6.out'],['output-7.out'],['output-8.out'],['output-9.out'],['output-10.out'],['output-11.out'],['output-12.out'],['output-14.out'],['output-15.out'],['output-16.out'],['output-17.out'],['output-18.out'],['output-19.out']]
 thermalization_list=[]
 for run in runs:
@@ -25,9 +26,10 @@ index_to_atom, atom_to_index=make_atom_dictionary_from_timeserie(time_pos)
 print(f'{len(thermalization_list)} input files found! ')
 
 neighbors_list = get_neighborlist(time_pos[0],1.8)# choose a specific time for which we can identify neighbours
-#neighbors_list[0].extend([7])    # The iodine-carbon bond is longer, and is therefore manually added
+neighbors_list[0].extend([8])
+neighbors_list[1].extend([7])# The iodine-carbon bond is longer, and is therefore manually added
 #Iodine at place 0 and closest carbon is nr 7 in metINim
-
+#Iodine at place 0 and carbon at 8 in BrINim
 print(f'> Neighbor list[atom][neighbor]: {neighbors_list}')                               
 print(f'> Number of neighbor lists is {len(neighbors_list)}')
 
@@ -60,14 +62,14 @@ if inp in ['Y', 'y','']:
 #    plt.show()
 
 #Analyzing bond integrity for one pair
-atom_pair = "('N3', 'C2')"
-atom_i = atom_pair.split("'")[1]
-i = atom_to_index[atom_i]
-atom_j = atom_pair.split("'")[3]
-j = atom_to_index[atom_j]
-lamda = 10
+#atom_pair = "('N3', 'C2')"
+#atom_i = atom_pair.split("'")[1]
+#i = atom_to_index[atom_i]
+#atom_j = atom_pair.split("'")[3]
+#j = atom_to_index[atom_j]
+#lamda = 10
 
-bond_dists = distance_list[int(i)][str(j)]
+#bond_dists = distance_list[int(i)][str(j)]
 #fig, ax = plt.subplots()
 #ax.plot(bond_dists, bond_broken_2(bond_dists,len(bond_dists), mean(mean_distances_dict[atom_pair]),
 #                                  stdev(mean_distances_dict[atom_pair]), lamda), c='orange')
@@ -138,7 +140,8 @@ for key in list(mean_distances_dict.keys()):
 
 #Bond integrity over time
 #atom_pairs = ["('N3', 'C2')", "('I1', 'C3')"]#Key C2,N3 doesnt work
-atom_pairs = ["('N3', 'C2')"]#Key C2,N3 doesnt work
+atom_pairs = ["('I1', 'C2')"]#Key C2,N3 doesnt work
+print(ion_dict.keys())
 ion_run = 1 #number of ionizations
 ion = ion_run - 1
 i = None
