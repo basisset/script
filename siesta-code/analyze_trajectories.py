@@ -225,8 +225,8 @@ def frags_from_dists(mean_distances_dict, atom_to_index, ion_dict, lamda, cutoff
     #n_ion = 10  #Number of ionizations?
     #n_geo = 1
     #n_ion = 1
-    
     broken_bonds_dict={}
+    BI_check=[]
     for bond in list(mean_distances_dict.keys()):
         n_geo = len(ion_dict[bond])
         broken_bonds_dict[bond]=[None]*n_geo
@@ -236,11 +236,14 @@ def frags_from_dists(mean_distances_dict, atom_to_index, ion_dict, lamda, cutoff
             for ion in range(n_ion):
                 BI = bond_broken_2(ion_dict[bond][geo][ion],len(ion_dict[bond][geo][ion]),
                                 mean(mean_distances_dict[bond]), stdev(mean_distances_dict[bond]),l)
+                BI_check.append(ion_dict[bond][geo][ion])
                 if BI[-1] <= cutoff_BI:
                     broken_bonds_dict[bond][geo][ion]="broken"
                 else:
                     broken_bonds_dict[bond][geo][ion]="intact"
 
+    np.array(BI_check)
+    np.savetxt(f'BI.txt',BI_check,delimiter=',')
     total_fragments=[None]*n_geo
     total_fragments=[[None]*n_ion for x in total_fragments]
 
@@ -252,8 +255,8 @@ def frags_from_dists(mean_distances_dict, atom_to_index, ion_dict, lamda, cutoff
             for bond in broken_bonds_dict.keys():
                 atoms= [x for x in atom_to_index.keys() if bond.split("'")[1]==x or bond.split("'")[3]==x]
                 if broken_bonds_dict[bond][geo][ion]=="intact":
-                    found=False
-                    merged=False
+                    found=False #atom found close to fragment?
+                    merged=False #atom added to fragment?
                     for j in range (len(polyatomic)):
                         if (atoms[0] in polyatomic[j]) and (atoms[1] not in polyatomic[j]):
                             for k in range(len(polyatomic)):
@@ -310,7 +313,9 @@ def frags_from_dists(mean_distances_dict, atom_to_index, ion_dict, lamda, cutoff
             fragments=[]
             fragments.extend(polyatomic)
             fragments.extend(monoatomic)
+            #print(f'Monoatomic: {monoatomic}')
             total_fragments[geo][ion]=fragments
+            print(broken_bonds_dict)
     return total_fragments
 
 
