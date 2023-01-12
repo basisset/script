@@ -10,7 +10,7 @@ mass['H']=1.00
 def get_mass(frag):
     total_mass=0.0
     for i, c in enumerate(frag):#takes only one letter at a time, fails for Br
-        print(f'mass_spec i,c: {i},{c}')
+        #print(f'mass_spec i,c: {i},{c}')
         if ('^' not in c):
             if c.isalnum():
                 if c.isalpha():
