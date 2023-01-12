@@ -14,10 +14,12 @@ plt.rc('font', size=12)
 
 
 #Reads data files for verlet runs
-#runs = ['output-16.out','output-17.out','output-18.out']
-runs=['output-1.out','output-3.out','output-4.out','output-5.out','output-6.out','output-7.out','output-8.out','output-9.out','output-10.out']
-#runs=['output-13.out','output-20.out','output-1.out','output-2.out','output-3.out','output-4.out','output-5.out','output-6.out','output-7.out','output-8.out','output-9.out','output-10.out','output-11.out','output-12.out','output-14.out','output-15.out','output-16.out','output-17.out','output-18.out','output-19.out']
-#runs2=[['output-13.out'],['output-20.out'],['output-1.out'],['output-2.out'],['output-3.out'],['output-4.out'],['output-5.out'],['output-6.out'],['output-7.out'],['output-8.out'],['output-9.out'],['output-10.out'],['output-11.out'],['output-12.out'],['output-14.out'],['output-15.out'],['output-16.out'],['output-17.out'],['output-18.out'],['output-19.out']]
+runs = ['output-10.out','output-7.out']
+#runs=['output-1.out','output-3.out','output-4.out','output-5.out','output-6.out','output-7.out','output-8.out','output-9.out','output-10.out']
+#runs=['output-1.out','output-2.out','output-3.out','output-4.out','output-5.out','output-6.out','output-7.out','output-8.out','output-9.out','output-10.out','output-11.out','output-12.out','output-14.out','output-15.out','output-16.out','output-17.out','output-18.out','output-19.out']
+#runs=['output-1.out','output-2.out','output-3.out','output-4.out','output-5.out','output-6.out','output-7.out','output-8.out','output-9.out','output-10.out','output-11.out','output-12.out','output-13.out','output-14.out','output-15.out','output-16.out','output-17.out','output-18.out','output-19.out','output-20.out']
+
+
 thermalization_list=[]
 for run in runs:
     time_pos, timeserie, orblegend, specieslegend, numberlegend = parse_timestep(run)
@@ -26,9 +28,10 @@ index_to_atom, atom_to_index=make_atom_dictionary_from_timeserie(time_pos)
 print(f'{len(thermalization_list)} input files found! ')
 
 neighbors_list = get_neighborlist(time_pos[0],1.8)# choose a specific time for which we can identify neighbours
-neighbors_list[0].extend([8])
-neighbors_list[1].extend([7])# The iodine-carbon bond is longer, and is therefore manually added
-#Iodine at place 0 and closest carbon is nr 7 in metINim
+#BrINim
+#neighbors_list[0].extend([8])
+#neighbors_list[1].extend([7])# The iodine-carbon bond is longer, and is therefore manually added
+#neighbors_list[0].extend([7])#Iodine at place 0 and closest carbon is nr 7 in metINim
 #Iodine at place 0 and carbon at 8 in BrINim
 print(f'> Neighbor list[atom][neighbor]: {neighbors_list}')                               
 print(f'> Number of neighbor lists is {len(neighbors_list)}')
@@ -39,7 +42,6 @@ mean_distances_dict, distance_list = mean_distance_dict(thermalization_list, ind
 
 #Change to save file for mean and std from user input
 inp = input('> Do you want to print mean and standard deviation? (Y/n) \n')
-print(inp)
 if inp in ['Y', 'y','']:
     for k in range(len(neighbors_list)):
         for j in neighbors_list[k]:
@@ -140,8 +142,9 @@ for key in list(mean_distances_dict.keys()):
 
 #Bond integrity over time
 #atom_pairs = ["('N3', 'C2')", "('I1', 'C3')"]#Key C2,N3 doesnt work
-atom_pairs = ["('I1', 'C2')"]#Key C2,N3 doesnt work
-print(ion_dict.keys())
+#atom_pairs = ["('I1', 'C2')"]#Key C2,N3 doesnt work
+atom_pairs = ["('N3', 'C2')"]
+
 ion_run = 1 #number of ionizations
 ion = ion_run - 1
 i = None
@@ -160,7 +163,7 @@ for atom_pair in atom_pairs:
     bond_intr_mean = bond_intr_mean/n_geo 
     ax.fill_between(time,bond_intr_mean,1,zorder=1, color='orange')
 #    plt.savefig(f'{i}_{j}-bondIntr.png')
-    plt.show()
+    #plt.show()
     bond_intr_mean = np.zeros(len(time))
 
 
@@ -199,7 +202,6 @@ for atom_pair in atom_pairs:
 #fig.savefig(f'BI {i} {j}')
 ##ax.set(xlabel='$\overline{z}$ [e/N]', ylabel='Time [fs]', title=f'Mean bond integrity for atom pair {i} {j}')
 #plt.show()
-
 
 
 
