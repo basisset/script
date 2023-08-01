@@ -4,6 +4,7 @@ import numpy as np
 import scipy as sp
 import sys
 import pickle
+import pprint
 from statistics import mean, stdev
 from analyze_trajectories import *
 import matplotlib.pyplot as plt
@@ -11,11 +12,11 @@ from elementdata import *
 
 plt.rcParams["font.family"] = "times new roman"    # Changing font style and size for plots
 plt.rc('font', size=12) 
-
+pp = pprint.PrettyPrinter(indent=4)
 
 #Reads data files for verlet runs
-mol = 'Nim'
-z = 'z3'
+mol = 'BrINim'
+z = 'z4'
 verlet=['MD.out','MD2.out']
 nr_runs = 20
 
@@ -38,7 +39,9 @@ if mol == 'metINim':
 if mol == 'BrINim': 
     print(f'> Analyzing {mol}')
     neighbors_list[0].extend([8])
+    neighbors_list[1].extend([9])
     #Iodine at place 0 and carbon at 8 in BrINim
+    #Bromine at place 1 and closest carbon at 9
 else:
     print(f'> Analyzing {mol}')
 print(f'> Neighbor list[atom][neighbor]: {neighbors_list}')                               
@@ -46,7 +49,7 @@ print(f'> Number of neighbor lists is {len(neighbors_list)}')
 
 print('> Calculating mean and standard deviation for atomic distances...')
 mean_distances_dict, distance_list = mean_distance_dict(thermalization_list, index_to_atom, neighbors_list)
-print(mean_distances_dict)
+#print(mean_distances_dict)
 
 #Change to save file for mean and std from user input
 #inp = input('> Do you want to print mean and standard deviation? (Y/n) \n')
@@ -76,16 +79,13 @@ for indexpair in index:
 #Removed incorrect bonds (H is only bound to one)
 mean_distances_dict = rm_incorrect_bonds(index_to_atom,mean_distances_dict)
 
-#runs2=[['output-13.out'],['output-20.out'],['output-1.out'],['output-2.out'],['output-3.out'],['output-4.out'],['output-5.out'],['output-6.out'],['output-7.out'],['output-8.out'],['output-9.out'],['output-10.out'],['output-11.out'],['output-12.out'],['output-14.out'],['output-15.out'],['output-16.out'],['output-17.out'],['output-18.out'],['output-19.out']]
-#ionization_list = []
-#for geo in runs2:
-#    for run in geo:
-#        time_pos, timeserie, orblegend, specieslegend, numberlegend = parse_timestep(run)
-#        ionization_list.append(time_pos)
 
-
-runs=['output-1.out','output-2.out','output-3.out','output-4.out','output-5.out','output-6.out','output-7.out','output-8.out','output-9.out','output-10.out','output-11.out','output-12.out','output-13.out','output-14.out','output-15.out','output-16.out','output-17.out','output-18.out','output-19.out','output-20.out']
+#runs=['output-1.out','output-3.out','output-5.out','output-7.out','output-8.out','output-13.out','output-14.out','output-16.out','output-18.out']
+#runs=['output-1.out','output-1-r2.out','output-2.out','output-2-r2.out','output-3.out','output-3-r2.out','output-5.out','output-6.out','output-7.out','output-8.out','output-8-r2.out','output-9.out','output-9-r2.out','output-11.out','output-13.out','output-13-r2.out','output-14.out','output-15.out','output-16.out','output-18.out']
+runs=['output-1.out','output-2.out','output-3.out','output-4.out','output-5.out','output-6.out','output-7.out','output-8.out','output-10.out','output-9.out','output-12.out','output-11.out','output-13.out','output-17.out','output-14.out','output-15.out','output-16.out','output-18.out','output-19.out','output-20.out']
 #runs=['output-1.out','output-2.out','output-3.out']
+
+assert nr_runs == len(runs)
 
 ionization_list=[]
 for run in runs:
@@ -96,27 +96,29 @@ for run in runs:
 n_geo = len(runs)   # Number of different starting geometries
 n_ion = 1    # Number of different ionization numbers (# electrons removed)
 ion_dict = {}
-for key in list(mean_distances_dict.keys()):
+count=0
+for key in list(mean_distances_dict.keys()):#15
     index_i = int(atom_to_index[key.split("'")[1]])
     index_j = int(atom_to_index[key.split("'")[3]])
-    for geo in range(n_geo):
-        for ion in range(n_ion):
+    for geo in range(n_geo):#20
+        for ion in range(n_ion):#1
             current_run=(n_ion*geo)+ion
             ion_dist_list = [dist_timestep(ionization_list[geo][t],index_i,index_j) for t in range(len(ionization_list[geo]))]
-
             if key not in ion_dict:
                 ion_dict[key]=[None]*n_geo
                 ion_dict[key]=[[None]*n_ion for x in ion_dict[key]]
             else:
                 pass
-            ion_dict[key][geo][ion]=ion_dist_list
+            ion_dict[key][geo][ion]=ion_dist_list #ion_dict[atom_pair][startgeometry][ionization number][time step]
 
 #Bond integrity over time
 #atom_pairs = ["('N3', 'C2')", "('I1', 'C3')"]#Key C2,N3 doesnt work
-#atom_pairs = ["('I1', 'C2')"]
-print(ion_dict.keys())
-atom_pairs = ["('N3', 'C2')","('C2', 'C3')","('N2', 'C2')","('N2', 'C1')","('N1', 'C1')","('N1', 'C3')","('C1', 'C4')"]
+#atom_pairs = ["('I1', 'C3')"]
+#atom_pairs = ["('N3', 'C2')","('C2', 'C3')","('N2', 'C2')","('N2', 'C1')","('N1', 'C1')","('N1', 'C3')","('C1', 'C4')","('O1', 'N3')","('N3', 'O2')"]
 nr_broken = 0
+
+atom_pairs = list(ion_dict.keys())
+#atom_pairs = ["('O1', 'N3')","('O2', 'N3')"]
 
 ion_run = 1 #number of ionizations
 ion = ion_run - 1
@@ -125,32 +127,55 @@ j = None
 time = [t for t in range(len(thermalization_list[0]))]
 bond_intr_mean = np.zeros(len(time))
 bond_intr_stat = atom_pairs.copy() #Bond breakage statistics
-for bond,atom_pair in enumerate(atom_pairs):
-    fig, ax = plt.subplots()
-    for geo in range(n_geo):
-        bond_intr = bond_broken_2(ion_dict[atom_pair][geo][ion],len(ion_dict[atom_pair][geo][ion]),mean(mean_distances_dict[atom_pair]), stdev(mean_distances_dict[atom_pair]),10)
-        bond_intr_mean += bond_intr
-        nr_broken += (bond_intr[-1]<0.5).sum()
-        ax.plot(time, bond_intr,zorder=1000, color='gray')
-        i = atom_pair.split("'")[1]
-        j = atom_pair.split("'")[3]
-        ax.set(xlabel='Time [fs]',ylabel='Bond integrity',title=f'Bond integrity for atom pair {i} {j} for {mol} {z}') 
-    bond_intr_mean = bond_intr_mean/n_geo 
-    bond_intr_stat[bond] += f': {(nr_broken/nr_runs)*100}%'
-    nr_broken = 0
-    ax.fill_between(time,bond_intr_mean,1,zorder=1, color='orange')
-    plt.savefig(f'{i}_{j}-bondIntr-{mol}-{z}.png')
-    print(bond_intr_stat)
-    plt.show()
-    bond_intr_mean = np.zeros(len(time))
+
+#Calculates bond integrity and gets fragments
+if True:
+    for bond,atom_pair in enumerate(atom_pairs):
+        fig, ax = plt.subplots()
+        for geo in range(n_geo):
+            bond_intr = bond_broken_2(ion_dict[atom_pair][geo][ion],len(ion_dict[atom_pair][geo][ion]),mean(mean_distances_dict[atom_pair]), stdev(mean_distances_dict[atom_pair]),10)
+            bond_intr_mean += bond_intr
+        
+            nr_broken += (bond_intr[-1]<0.5).sum()#Checks how many of the runs has the bond broken at final time step
+            ax.plot(time, bond_intr,zorder=1000, color='gray')
+            i = atom_pair.split("'")[1]
+            j = atom_pair.split("'")[3]
+            ax.set(xlabel='Time [fs]',ylabel='Bond integrity',title=f'Bond integrity for atom pair {i} {j} for {mol} {z}') 
+        bond_intr_mean = bond_intr_mean/n_geo 
+        bond_intr_stat[bond] += f': {(nr_broken/nr_runs)*100}%'
+        nr_broken = 0
+        ax.fill_between(time,bond_intr_mean,1,zorder=1, color='orange')
+        #plt.savefig(f'{i}_{j}-bondIntr-{mol}-{z}.png')
+        #plt.show()
+        bond_intr_mean = np.zeros(len(time))
+
+    total_fragments = frags_from_dists(mean_distances_dict, atom_to_index, ion_dict, lamda=10, cutoff_BI=0.5)
+    print(f'> Inputfiles:\n {runs}\nFragments: \n{total_fragments}')
+    print(f'> Bond integrity in final time step per bond is:\n {bond_intr_stat}')
+    with open('fragments.pickle','wb') as f:
+        pickle.dump(total_fragments, f)
+
+if False:
+    for bond,atom_pair in enumerate(atom_pairs):
+        fig, ax = plt.subplots()
+        for geo in range(n_geo):
+            bond_intr = bond_broken_2(ion_dict[atom_pair][geo][ion],len(ion_dict[atom_pair][geo][ion]),mean(mean_distances_dict[atom_pair]), stdev(mean_distances_dict[atom_pair]),10)
+            intr_bond = np.flip(bond_intr)
+            step_broken = (len(time_pos)-1)-next((i for i,value in enumerate(intr_bond) if value>0.5),None)+1 # Time for bond break in fs
+            print(step_broken)
+            ion_dict_2 = ion_dict.copy()
+            for key in list(mean_distances_dict.keys()):
+                ion_dict_2[key][geo][ion]=ion_dict_2[key][geo][ion][:step_broken+1]
+        fragments_at_broken = frags_from_dists(mean_distances_dict,atom_to_index,ion_dict_2,lamda=10, cutoff_BI=0.5)
+            
+        print(fragments_at_broken)
 
 
 
-total_fragments = frags_from_dists(mean_distances_dict, atom_to_index, ion_dict, lamda=10, cutoff_BI=0.5)
-print(f'> Inputfiles:\n {runs}\nFragments: \n{total_fragments}')
-print(f'> Bond integrity in final time step per bond is:\n {bond_intr_stat}')
-with open('fragments.pickle','wb') as f:
-    pickle.dump(total_fragments, f)
+
+
+
+
 print('> Done')
 
 #Write code which also shows mass of each fragment
