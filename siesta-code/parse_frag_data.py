@@ -16,15 +16,17 @@ pp = pprint.PrettyPrinter(indent=4)
 
 #Reads data files for verlet runs
 mol = 'BrINim'
-z = 'z4'
-verlet=['MD.out','MD2.out']
-nr_runs = 20
+z = 'z2'
+verlet=['../../verlet/MD.out','../../verlet/MD2.out']
+nr_runs = 17
 
+runs=['output-1.out','output-2.out','output-3.out','output-4.out','output-5.out','output-6.out','output-7.out','output-8.out','output-9.out','output-10.out','output-11.out','output-12.out','output-13.out','output-14.out','output-18.out','output-19.out','output-20.out']
 
 thermalization_list=[]
 for run in verlet:
     time_pos, timeserie, orblegend, specieslegend, numberlegend = parse_timestep(run)
     thermalization_list.append(time_pos)# Creates list of time positions 
+    
 index_to_atom, atom_to_index=make_atom_dictionary_from_timeserie(time_pos)
 print(f'{len(thermalization_list)} input files found! ')
 
@@ -82,7 +84,7 @@ mean_distances_dict = rm_incorrect_bonds(index_to_atom,mean_distances_dict)
 
 #runs=['output-1.out','output-3.out','output-5.out','output-7.out','output-8.out','output-13.out','output-14.out','output-16.out','output-18.out']
 #runs=['output-1.out','output-1-r2.out','output-2.out','output-2-r2.out','output-3.out','output-3-r2.out','output-5.out','output-6.out','output-7.out','output-8.out','output-8-r2.out','output-9.out','output-9-r2.out','output-11.out','output-13.out','output-13-r2.out','output-14.out','output-15.out','output-16.out','output-18.out']
-runs=['output-1.out','output-2.out','output-3.out','output-4.out','output-5.out','output-6.out','output-7.out','output-8.out','output-10.out','output-9.out','output-12.out','output-11.out','output-13.out','output-17.out','output-14.out','output-15.out','output-16.out','output-18.out','output-19.out','output-20.out']
+#runs=['output-1.out','output-3.out','output-4.out','output-5.out','output-6.out','output-7.out','output-8.out','output-9.out','output-10.out','output-12.out','output-11.out','output-13.out','output-14.out','output-15.out','output-16.out','output-17.out','output-18.out','output-19.out','output-20.out']
 #runs=['output-1.out','output-2.out','output-3.out']
 
 assert nr_runs == len(runs)

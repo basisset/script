@@ -6,6 +6,7 @@ mass['O']=16.0 #994
 mass['N']=14.0 #007
 mass['C']=12.0 #011
 mass['H']=1.00
+mass['P']=30.97
 
 def get_mass(frag):
     total_mass=0.0
@@ -45,6 +46,9 @@ def m_over_z(frag):
     z=get_charge(frag) 
     return m/z
 
+#F1 = 'HOPOOOCCOCOCCNCNCCNNCNCHHHHHHHHHHHPOOOCCOCOCCNCONCOCCCHHHHHHHHHHHHPOOOCCOCOCCNCONCNCIHHHHHHHHH' #CUiA
+F1 = 'IPPPOOOOOOOOOOOOOOOOOOONNNNNNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCCCCHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH'
+F2 = 'IPPOOOOOOOOOOOOOONNNNNCCCCCCCCCCCCCCCCCCHHHHHHHHHHHHHHHHHHHHHH'#UiC
 #F1='COOH'
 #F2='S2COHC3H2'
 #full='COOHCHNH3CH2S2C2CHNH2COOH'
@@ -66,8 +70,8 @@ def m_over_z(frag):
 #a = get_mass(full)
 #b = get_mass(F2)
 #print('full: ', full, get_mass(full))
-#print('F1: ', F1, get_mass(F1))
-#print('F2: ', F2, get_mass(F2))
+print('F1: ', F1, get_mass(F1))
+print('F2: ', F2, get_mass(F2))
 #print('F3: ', F3, get_mass(F3))
 ##print('F4: ', F4, get_mass(F4))
 ##print('F5: ', F5, get_mass(F5))

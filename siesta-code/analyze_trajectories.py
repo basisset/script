@@ -223,35 +223,42 @@ def frags_from_dists(mean_distances_dict, atom_to_index, ion_dict, lamda, cutoff
     l=lamda #Lambda value
     #n_geo = 11
     #n_ion = 10  #Number of ionizations?
-    #n_geo = 1
-    #n_ion = 1
+    n_geo = 20
+    n_ion = 1
     broken_bonds_dict={}
     BI_check=[]
+    dummy = 'n'
     for bond in list(mean_distances_dict.keys()):
         n_geo = len(ion_dict[bond])
-        broken_bonds_dict[bond]=[None]*n_geo
+        broken_bonds_dict[bond]=[None]*n_geo # {'bond1':[None,None],...}
+        broken_bonds_dict[bond]=[[None]*n_ion for x in broken_bonds_dict[bond]]
+        #print(broken_bonds_dict[bond])
         for geo in range(n_geo):
             n_ion = len(ion_dict[bond][geo])
             broken_bonds_dict[bond][geo]=[None]*n_ion
             for ion in range(n_ion):
+                #BI calculated by bond_broken(distance,nr_timesteps,mean,stdev,lambda)
                 BI = bond_broken_2(ion_dict[bond][geo][ion],len(ion_dict[bond][geo][ion]),
                                 mean(mean_distances_dict[bond]), stdev(mean_distances_dict[bond]),l)
+                
                 BI_check.append(ion_dict[bond][geo][ion])
+                # Goes though each run and checks what bonds are broken or not
                 if BI[-1] <= cutoff_BI:
                     broken_bonds_dict[bond][geo][ion]="broken"
                 else:
                     broken_bonds_dict[bond][geo][ion]="intact"
 
-    np.array(BI_check)
-    np.savetxt(f'BI.txt',BI_check,delimiter=',')
+    #np.array(BI_check)
+    #np.savetxt(f'BI.txt',BI_check,delimiter=',')
     total_fragments=[None]*n_geo
     total_fragments=[[None]*n_ion for x in total_fragments]
 
+    #print(broken_bonds_dict)
     #print(f'##### Number of starting geometries are {n_geo}#####')
     for geo in range(n_geo):
         for ion in range(n_ion):
-            polyatomic=[]
-            monoatomic=[]
+            polyatomic=[] #Fragments with multiple atoms
+            monoatomic=[] #Fragments with only single atoms
             for bond in broken_bonds_dict.keys():
                 atoms= [x for x in atom_to_index.keys() if bond.split("'")[1]==x or bond.split("'")[3]==x]
                 if broken_bonds_dict[bond][geo][ion]=="intact":
@@ -301,7 +308,6 @@ def frags_from_dists(mean_distances_dict, atom_to_index, ion_dict, lamda, cutoff
                         pass
                 else:
                     print("broken_bonds_dict["+bond+"]["+geo+"]["+ion+"] was not assigned a value")
-       
             for i in range (len(monoatomic)):
                 monoatomic[i]=[monoatomic[i]]
             empty_indices=[]
@@ -315,7 +321,7 @@ def frags_from_dists(mean_distances_dict, atom_to_index, ion_dict, lamda, cutoff
             fragments.extend(monoatomic)
             #print(f'Monoatomic: {monoatomic}')
             total_fragments[geo][ion]=fragments
-            print(broken_bonds_dict)
+            #print(f'Nr 2: {broken_bonds_dict}')
     return total_fragments
 
 
@@ -396,6 +402,7 @@ def make_atom_dictionary(filename):
 
 def make_atom_dictionary_from_timeserie(timeserie):
     atomdict={}
+    print(len(timeserie))
     name_list=[atm.name for atm in timeserie[0]]
     #print(name_list), print(type(name_list[0]))
     for i, atm in enumerate(timeserie[0]):
@@ -455,12 +462,10 @@ def parse_timestep(filename, outfile=None):
     
     for i in range(len(contents)):
         if ("AtomicSpecies" in contents[i]):
-            #print "Found AtomicCoord..."
             for j in range(i+1,len(contents)):
-                #print(str(j-i)+"  "+str(contents[j].split()))
+                print(str(j-i)+"  "+str(contents[j].split()))
                 numberlegend[str(j-i)]=str(contents[j].split()[3])
-                if ("AtomicCoordinatesAndAtomicSpecies" in contents[j+1]):
-                #    print "Found!"
+                if ("endblock" in contents[j+1]):
                     break
             else:
                 continue
@@ -480,7 +485,7 @@ def parse_timestep(filename, outfile=None):
 
     
     for i in range(len(contents)):
-        if ("(Ang)" in contents[i])  and ("outcoor" in contents[i]):
+        if ("outcoor: Atomic coordinates (Ang)" in contents[i]):
                 atoms=[]
                 for j in range(i+1,i+numatm+1):
                     atoms.append(atom())
