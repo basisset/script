@@ -70,9 +70,6 @@ def atomic_distance(moldata, totdata, threshold=1.5):
     to_rm = to_rm[to_rm != 0]
     
     #Checks so that an atom in the closest molecule doesnt get removed. 
-    #for atom in closest_h2o:
-    #    if atom in to_rm:
-    #        to_rm = np.delete(to_rm, np.where(to_rm==atom))
     print(f'> Atoms in original file: {len(totdata_arr)}')
     print(f'> Atoms to remove: {len(to_rm)}')
     print(f'> In positions: {to_rm}')
@@ -102,24 +99,22 @@ for run in np.arange(nr_sims):
     center_index = 0#index of the atom which we want to put in the middle
     center_coord = moldata['z'].iloc[center_index]
     shift = (box_size[2]/2)-center_coord
-    new_moldata['z'] = new_moldata['z']+shift
+    new_moldata['z'] =+ shift
 
 #if coordinate of atom is outside box then it is moved to the other side
     new_moldata.loc[new_moldata['z'] > box_size[2],'z'] = new_moldata.loc[new_moldata['z'] > box_size[2],'z'] - box_size[2]
     new_soldata.loc[new_soldata['z'] > box_size[2],'z'] = new_soldata.loc[new_soldata['z'] > box_size[2],'z'] - box_size[2]
 
     tot_data = pd.concat([new_moldata,new_soldata])
-#tot_data.to_csv('temp.csv', columns=['atom', 'x', 'y', 'z'],index=False, sep='\t')
 
     to_rm, totdata_arr, closest_h2o = atomic_distance(new_moldata, tot_data)
     data_del = delete_atoms(totdata_arr, to_rm)
     updated_atoms = len(data_del)
-
+    print(data_del[0][7]) 
     new_totdata = pd.DataFrame(data_del, columns=['ATOM','index','atom','molecule','1','x','y','z','1.0','0.0','element'])
-#tot_data['atom'] = tot_data['atom'].apply(rename)
     new_totdata['atom'] = new_totdata['atom'].apply(rename)
 
-
+    #Create new files
     new_totdata.to_csv(f'sim_{run}.xyz', columns=['atom', 'x', 'y', 'z'],index=False, sep='\t')
     with open(f'sim_{run}.xyz', 'r+') as file:
         file_data = file.read()
